@@ -1,4 +1,9 @@
-//#include"getch.h"     리눅스용
+//#define LINUX       //리눅스용
+#define WINDOW
+
+#ifdef LINUX
+#include"getch.h"
+#endif
 #include<stdio.h>
 #include<conio.h>
 
@@ -351,7 +356,14 @@ public:
     }
 
     Command* handleInput() {
+#ifdef LINUX
+        input = getch();
+#endif
+#ifndef LINUX
+#ifdef WINDOW
         input = _getch();
+#endif
+#endif
         fflush(stdin);
 
         if (isPressed(W)) return buttonW_;
