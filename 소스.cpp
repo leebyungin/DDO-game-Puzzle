@@ -1,4 +1,4 @@
-//#define LINUX       //¸®´ª½º¿ë
+//#define LINUX       //ë¦¬ëˆ…ìŠ¤ìš©
 #define WINDOW
 
 #ifdef LINUX
