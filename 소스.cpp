@@ -4,8 +4,10 @@
 #ifdef LINUX
 #include"getch.h"
 #endif
-#include<stdio.h>
+#ifdef WINDOW
 #include<conio.h>
+#endif
+#include<stdio.h>
 
 #define SPACE 32
 #define W 119           //w
