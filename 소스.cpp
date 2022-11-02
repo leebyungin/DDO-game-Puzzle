@@ -1,4 +1,4 @@
-//#define LINUX       //ë¦¬ëˆ…ìŠ¤ìš©
+//#define LINUX       //¸®´ª½º¿ë
 #define WINDOW
 
 #ifdef LINUX
@@ -6,6 +6,7 @@
 #endif
 #ifdef WINDOW
 #include<conio.h>
+#include<Windows.h>
 #endif
 #include<stdio.h>
 
@@ -28,8 +29,13 @@ int GAME_STATUS = 1;
   }typedef Position;*/
 
 void InitScreen() {
+#ifdef LINUX            //À©µµ¿ì ¹ÌÁö¿ø
     printf("\033[2J");
     printf("\033[1;1H");
+#endif
+#ifdef WINDOW
+    system("cls");
+#endif
 }
 
 template <class T>
