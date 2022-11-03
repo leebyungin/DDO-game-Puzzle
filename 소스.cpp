@@ -320,9 +320,14 @@ UI ui;
 
 class Map {
 private:
-    char map[MAP_Y][MAP_X];
+    int map[MAP_Y][MAP_X];
     int RangeCheck(Position<int> a) {
         if (a.GetX() >= 0 && a.GetY() >= 0 && a.GetX() < MAP_X && a.GetY() < MAP_Y)
+            return 1;
+        return 0;
+    }
+    int RangeCheck(int x,int y) {
+        if (x >= 0 && y >= 0 && x < MAP_X && y < MAP_Y)
             return 1;
         return 0;
     }
@@ -331,7 +336,7 @@ public:
     Map() {
         for (int i = 0; i < MAP_Y; i++) {
             for (int j = 0; j < MAP_X; j++) {
-                map[i][j] = 'x';
+                map[i][j] = 0;
             }
         }
     }
@@ -342,26 +347,39 @@ public:
         for (int y = 0; y < MAP_Y; y++) {
             for (int x = 0; x < MAP_X; x++) {
                 if (_x == x && _y == y) {
-                    printf("\033[45m%c", map[y][x]);
+                    printf("\033[45m%");
+                    if(map[y][x]==0)
+                        printf("□");
+                    if(map[y][x]==1)
+                        printf("■");
                     printf("\033[0m");
                 }
-                else
-                    printf("%c", map[y][x]);
+                else {
+                    //printf("%c", map[y][x]);
+                    if (map[y][x] == 0)
+                        printf("□");
+                    if (map[y][x] == 1)
+                        printf("■");
+                }
             }
             printf("\n");
         }
     }
 
-    void Reverse(Position<int> a) {
-        if (RangeCheck(a)) {
-            if (map[a.GetY()][a.GetX()] == 'x')
-                map[a.GetY()][a.GetX()] = 'o';
-            else if (map[a.GetY()][a.GetX()] == 'o')
-                map[a.GetY()][a.GetX()] = 'x';
+    void Reverse(int x,int y) {
+        if (RangeCheck(x,y)) {
+            if (map[y][x] == 0)
+                map[y][x] = 1;
+            else if (map[y][x] == 1)
+                map[y][x] = 0;
         }
     }
     void Change(Position<int>a) {
-        Reverse(a);
+        Reverse(a.GetX(),a.GetY());
+        Reverse(a.GetX() - 1, a.GetY());
+        Reverse(a.GetX()+1, a.GetY());
+        Reverse(a.GetX(), a.GetY()-1);
+        Reverse(a.GetX(), a.GetY()+1);
     }
 
     char GetTileStatus(Position<int> a) {
@@ -647,7 +665,7 @@ InputHandler::InputHandler() {
 int main(void) {
     GameActor player;
     UIActor cursor;
-    printf("이동키: W,A,S,D\n상호작용: SPACE\n설정: ESC\n\n\n시작하려면 상호작용 키를 누르세요");
+    printf("게임 규칙: 화면에 나타나는 9개의 □를 ■으로 바꿔야 합니다.\n이동키: W,A,S,D\n상호작용: SPACE\n설정: ESC\n\n\n시작하려면 상호작용 키를 누르세요");
     do {} while (_getch() != SPACE);
     while (GAME_STATUS.Get()) {
         if (GAME_STATUS.Get()==STATE_PLAYGAME) {
