@@ -74,6 +74,7 @@ public:
     void SetRightKey(char key);
     void SetInteractKey(char key);
     void setKeys();
+    char GetInteractKey();
 
     Command*handleInput();
 };
@@ -227,7 +228,6 @@ public:
 
         case STATE_KEYSETTINGS:         //key setting page
             limits = KeyLines;
-
             for (int i = 0; i < KeyLines; i++) {
                 if (cursor == i&&setting==0) {
                     printf("\033[45m");
@@ -237,13 +237,15 @@ public:
 
                 if (setting == 1&&cursor==i) {
                     printf("\033[45m");
+                    printf("%c → ",keys[i]);
                 }
                 printf("%c\n",keysTemp[i] );
                 printf("\033[0m");
             }
 
             if (setting == 2) {
-                printf("===fix===\n");
+                printf("\n===fix===\n");
+                printf("%c → %c\n", keys[idx], keysTemp[idx]);
                 if(cursor==0)
                     printf("\033[45m");
                 printf("yes");
@@ -261,6 +263,7 @@ public:
     void Select(int cursor) {
 
         if (GAME_STATUS.Get() == STATE_MENU) {            //now you on the menu
+
             switch (cursor) {
             case 0:
                 GAME_STATUS.Set(STATE_PLAYGAME);
@@ -281,12 +284,12 @@ public:
         if (setting == 1 && GAME_STATUS.Get() == STATE_KEYSETTINGS) {   //키 변경 중
             char temp = keys[cursor];
             idx = cursor;
-            while (temp != SPACE) {
+             do{
                 keysTemp[cursor] = temp;
                 InitScreen();
                 Print(cursor);
                 temp = _getch();
-            }
+             } while (temp != input.GetInteractKey());
             setting = 2;
         }else if (setting == 2) { //cursor값이 cursorX가 넘어와야 함
             Print(cursor);
@@ -349,13 +352,16 @@ public:
         }
     }
 
-    void Change(Position<int> a) {
+    void Reverse(Position<int> a) {
         if (RangeCheck(a)) {
             if (map[a.GetY()][a.GetX()] == 'x')
                 map[a.GetY()][a.GetX()] = 'o';
             else if (map[a.GetY()][a.GetX()] == 'o')
                 map[a.GetY()][a.GetX()] = 'x';
         }
+    }
+    void Change(Position<int>a) {
+        Reverse(a);
     }
 
     char GetTileStatus(Position<int> a) {
@@ -610,6 +616,9 @@ InputHandler::InputHandler() {
     void InputHandler::SetRightKey(char key) { rightKey = key; }
     void InputHandler::SetInteractKey(char key) { interactKey = key; }
     void InputHandler::setKeys() {
+    }
+    char InputHandler::GetInteractKey() {
+        return interactKey;
     }
 
     Command* InputHandler::handleInput() {
