@@ -19,13 +19,15 @@
 #define ESC 27          //esc
 #define LATTER_GAP 32
 
-#define MAP_X 3
-#define MAP_Y 3
+//#define MAP_X 5
+//#define MAP_Y 5
 
 #define STATE_MENU 1
 #define STATE_KEYSETTINGS 2
 #define STATE_PLAYGAME -1
 #define STATE_QUITGAME 0
+int MAP_X = 3;
+int MAP_Y = 3;
 
 class Actor {
 private:
@@ -320,7 +322,10 @@ UI ui;
 
 class Map {
 private:
-    int map[MAP_Y][MAP_X];
+    int* map;
+    int count = 0;
+    int clear = 0;
+    int size = 0;
     int RangeCheck(Position<int> a) {
         if (a.GetX() >= 0 && a.GetY() >= 0 && a.GetX() < MAP_X && a.GetY() < MAP_Y)
             return 1;
@@ -334,32 +339,58 @@ private:
 
 public:
     Map() {
+        printf("게임 규칙: 화면에 나타나는 m*m개의 □를 모두 ■으로 바꿔야 합니다.\n이동키: W,A,S,D\n상호작용: SPACE\n설정: ESC\n\n\n시작하려면 m의 크기를 정해주세요(1~9): ");
+        do {
+            size = _getch();
+            printf("%d", size);
+        } while (size < '1' || size >'9');
+        MAP_X = MAP_Y = size - '0';
+
+        map = new(int [MAP_X*MAP_Y]);
         for (int i = 0; i < MAP_Y; i++) {
             for (int j = 0; j < MAP_X; j++) {
-                map[i][j] = 0;
+                map[i*MAP_Y+j] = 0;
             }
         }
+    }
+    ~Map() {
+        delete(map);
     }
     void Print(Position<int> pos) {
         int _x = pos.GetX();
         int _y = pos.GetY();
 
+        if (clear) {
+            printf("=====CLEAR!!!!=====\n");
+            printf(" 타일의 크기: %d×%d\n", size - '0', size - '0');
+            printf(" 뒤집은 횟수: %d\n===================", count);
+            _getch();
+            exit(0);
+        }
+
         for (int y = 0; y < MAP_Y; y++) {
             for (int x = 0; x < MAP_X; x++) {
                 if (_x == x && _y == y) {
                     printf("\033[45m%");
-                    if(map[y][x]==0)
+                    if (map[y * MAP_Y + x] == 0)
                         printf("□");
-                    if(map[y][x]==1)
+                    if (map[y * MAP_Y + x] == 1)
                         printf("■");
                     printf("\033[0m");
                 }
                 else {
                     //printf("%c", map[y][x]);
-                    if (map[y][x] == 0)
+                    if (map[y * MAP_Y + x] == 0)
                         printf("□");
-                    if (map[y][x] == 1)
+                    if (map[y * MAP_Y + x] == 1)
                         printf("■");
+                }
+
+                for (int k = 0; k < MAP_X * MAP_Y; k++) {
+                    clear = 0;
+                    if (map[k] == 0)
+                        break;
+                    clear = 1;
                 }
             }
             printf("\n");
@@ -368,13 +399,15 @@ public:
 
     void Reverse(int x,int y) {
         if (RangeCheck(x,y)) {
-            if (map[y][x] == 0)
-                map[y][x] = 1;
-            else if (map[y][x] == 1)
-                map[y][x] = 0;
+            if (map[y * MAP_Y + x] == 0)
+                map[y * MAP_Y + x] = 1;
+            else if (map[y * MAP_Y + x] == 1)
+                map[y * MAP_Y + x] = 0;
         }
     }
     void Change(Position<int>a) {
+        if(clear!=1)
+            count++;
         Reverse(a.GetX(),a.GetY());
         Reverse(a.GetX() - 1, a.GetY());
         Reverse(a.GetX()+1, a.GetY());
@@ -384,7 +417,7 @@ public:
 
     char GetTileStatus(Position<int> a) {
         if (RangeCheck(a))
-            return map[a.GetY()][a.GetX()];
+            return map[a.GetY()*MAP_Y+a.GetX()];
         return NULL;
     }
 
@@ -665,8 +698,7 @@ InputHandler::InputHandler() {
 int main(void) {
     GameActor player;
     UIActor cursor;
-    printf("게임 규칙: 화면에 나타나는 9개의 □를 ■으로 바꿔야 합니다.\n이동키: W,A,S,D\n상호작용: SPACE\n설정: ESC\n\n\n시작하려면 상호작용 키를 누르세요");
-    do {} while (_getch() != SPACE);
+   
     while (GAME_STATUS.Get()) {
         if (GAME_STATUS.Get()==STATE_PLAYGAME) {
             player.Print();
